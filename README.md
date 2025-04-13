@@ -1,2 +1,31 @@
-# products-price-scrapper
-A Python project that scrapes product data from Otto, Amazon, and eBay based on user-defined filters. The results are saved into a CSV file that can be explored and manipulated through an interactive Google Colab notebook.
+# Product Price Scraper
+
+This project is a Python-based scraper that gathers product data from three major e-commerce websites: **Otto**, **Amazon**, and **eBay**.  
+The user can define filters (such as price range and keywords), and the program returns a CSV file with relevant product names, prices, and URLs.
+
+
+## How it works
+
+1. Run the Python script `main.py` in your local environment.
+   
+3. You will be asked:
+   - What product you're looking for
+   - Whether you want to set a price filter (minimum and maximum)
+   - Whether you want to filter results by keywords
+     
+4. The program then searches Otto, Amazon, and eBay for matching products and saves the results to a CSV file named after your product (e.g., `iphone.csv`).
+   
+6. Once complete, a message will be displayed with a link to a Google Colab notebook.
+
+
+## Exploring your data
+
+In this notebook, you can:
+- Upload the CSV file you just created
+- Filter products by keyword or by price
+- Sort results from cheapest to most expensive and vice versa
+- Filter results by website (Otto, Amazon, or eBay)
+- Export modified versions of the CSV
+
+If you prefer, you can also just open the CSV file with Excel or another spreadsheet software.
+
