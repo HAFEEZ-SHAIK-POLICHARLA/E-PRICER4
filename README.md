@@ -2,6 +2,7 @@
 
 This project is a Python-based scraper that gathers product data from three major e-commerce websites: **Otto**, **Amazon**, and **eBay**.  
 The user can define filters (such as price range and keywords), and the program returns a CSV file with relevant product names, prices, and URLs.
+This program uses Selenium with Chrome. Please make sure Google Chrome is installed on your system.
 
 
 ## How it works
