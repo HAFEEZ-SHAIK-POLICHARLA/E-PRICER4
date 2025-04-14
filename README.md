@@ -13,7 +13,7 @@ The user can define filters (such as price range and keywords), and the program 
    - Whether you want to set a price filter (minimum and maximum)
    - Whether you want to filter results by keywords
      
-4. The program then searches Otto, Amazon, and eBay for matching products and saves the results to a CSV file named after your product (e.g., `iphone.csv`).
+4. The program then searches Otto, Amazon, and eBay for matching products and saves the results to a CSV file named products.csv.
    
 6. Once complete, a message will be displayed with a link to a Google Colab notebook.
 
