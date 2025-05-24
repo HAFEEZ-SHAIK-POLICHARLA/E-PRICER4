@@ -162,14 +162,3 @@ if st.session_state.page == 'edit_data':
 
     if st.button("Back"):
         st.session_state.page = 'scraper'
-
-
-
-# ==== INSTRUCTIONS FOR COLAB NOTEBOOK ===
-
-print('\nYour data has been saved to "products.csv".')
-print('You can now manipulate your product data in Google Colab or in Excel.')
-print(f'To use Google Colab, open the "Notebook_PCT.ipnyb"')
-print('2. Run the first cell to upload the CSV file when prompted.')
-print('3. Use the other cells to filter, sort, and analyze your product table.')
-print('Alternatively, just open the CSV in Excel or Google Sheets.')
