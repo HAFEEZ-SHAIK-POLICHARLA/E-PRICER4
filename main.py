@@ -1,89 +1,167 @@
-# ==== IMPORT STATEMENTS ====hyyeheye
+# ==== IMPORT STATEMENTS ====
 
 from scrapers.scraping_amazon import amazon_scraper
 from scrapers.scraping_ebay import ebay_scraper
 from scrapers.scraping_otto import otto_scraper
 import pandas as pd
-
-
-# ==== VARIABLES ===
-
-max_price = None
-min_price = None
-k_list = None
+import streamlit as st
 
 
 
-# ==== PRODUCT NAME INPUT ====
 
-while True:
-    product = input("Please type a product of your choice.\nProduct name:\n")
-    if product.strip():
-        break
-    print('Please type a valid string. For example: Iphone 13')
+# ==== HEADER AND START PAGE ====
 
+st.title("Online Price Scraper")
+if 'page' not in st.session_state:
+    st.session_state.page = 'start'
 
-
-# ==== PRICE FILTER INPUT ====
-
-while True:
-    price_filter = input("Would you like to set a price filter?\nType n or y:\n").lower()
-
-    if price_filter == 'y':
-        while True:
-            try:
-                max_price = float(input('What would be the maximum price?:\n'))
-                min_price = float(input('What would be the minimum price?:\n'))
-                break
-            except ValueError:
-                print('Please enter a valid number using digits and optionally a dot. For example: 99.99')
-        break
-
-    elif price_filter == 'n':
-        max_price = 'unlimited'
-        min_price = 'unlimited'
-        break
-
-    else:
-        print('Please type either y or n. Try again.')
+if st.session_state.page == 'start':
+    if st.button('start'):
+        st.session_state.page == 'scraper'
 
 
 
-# ==== KEYWORD FILTER INPUT ====
 
-while True:
-    keyword_filter = input("Would you like to set a keyword filter?\nType n or y:\n").lower()
+# ==== SCRAPER PAGE ====
 
-    if keyword_filter == 'y':
-        while True:
-            keywords_string = input('Type the keywords (separated by commas) you would like to filter in:\n')
-            k_list = [word.strip().lower() for word in keywords_string.split(',') if word.strip()]
+if st.session_state.page == 'scraper':
+    
 
-            if k_list:
-                break
-            print('Please write at least one valid keyword.\nFor example: Pro, Max, Case')
-        break
 
-    elif keyword_filter == 'n':
-        k_list = "empty"
-        break
+    # ==== PRODUCT NAME INPUT ====
 
-    else:
-        print('Please type either y or n. Try again.')
+    
+    st.session_state.product = st.text_input("Please type a product of your choice.\nProduct name:\n")
+    st.session_state.product.strip()
 
 
 
-# ==== MERGING DATA ====
+    # ==== PRICE FILTER INPUT ====
+    
 
-data = []
+    st.session_state.max_price = st.number_input('What would be the maximum price?')
+    st.session_state.min_price = st.number_input('What would be the minimum price?')
 
-for scraper in [otto_scraper, amazon_scraper, ebay_scraper]:
-    result = scraper(product, min_price, max_price, k_list)
-    if result:
-        data.extend(result)
 
-df = pd.DataFrame(data)
-df.to_csv("products.csv", index=False)
+
+    # ==== KEYWORD FILTER INPUT ====
+
+
+    st.session_state.keyword_filter = st.selectbox("Would you like to set a keyword filter?",["Yes","No"])
+
+    if st.session_state.keyword_filter == 'Yes':
+            st.session_state.keywords_string = st.text_input('Type the keywords (separated by commas) you would like to filter in')
+            st.session_state.k_list = [word.strip().lower() for word in st.session_state.keywords_string.split(',') if word.strip()]
+
+    elif st.session_state.keyword_filter == 'No':
+        st.session_state.k_list = "empty"
+        
+
+
+    # ==== VALIDATION ====
+
+    if st.button("Scrap"):
+
+        if not all([
+            st.session_state.get("product", "").strip(),
+            st.session_state.get("min_price"),
+            st.session_state.get("max_price"),
+            st.session_state.get("k_list")
+        ]):
+            st.error("Please fill all the boxes to continue")
+
+        else:
+
+            st.success("The scraper will sucessfully start. Please wait and make sure you have google chrome installed.")
+
+
+            # ==== MERGING DATA ====
+
+            data = []
+
+            for scraper in [otto_scraper, amazon_scraper, ebay_scraper]:
+                result = scraper(
+                    st.session_state.product,
+                    st.session_state.min_price,
+                    st.session_state.max_price,
+                    st.session_state.k_list
+                )
+                if result:
+                    data.extend(result)
+
+            if not data:
+                st.error("No result found with the selected filters.")
+            else:
+                df = pd.DataFrame(data)
+                df.to_csv("products.csv", index=False)
+                st.success("Products found and sucessfully saved.")
+                st.download_button(
+                    label= 'Download csv',
+                    data = df,
+                    file_name= 'products.csv',
+                    mime = 'text/csv'
+                    )
+                if st.button('Next'):
+                    st.session_state.page = 'edit_data'
+    
+            
+
+
+# ==== DATA EDITOR PAGE ====
+
+if st.session_state.page == 'edit_data':
+
+    st.title("Edit and Filter Scraped Data")
+
+
+    # === Load data ===
+
+    st.session_state.df = pd.read_csv("products.csv")
+    df = st.session_state.df
+
+
+    # === Filters ===
+
+    selected_site = st.selectbox("Filter by website:", options=sorted(df["Website"].unique()))
+    min_price = st.number_input("Minimum price:", value=float(df["Price"].min()))
+    max_price = st.number_input("Maximum price:", value=float(df["Price"].max()))
+
+    filtered_df = df[
+        (df["Website"] == selected_site) &
+        (df["Price"] >= min_price) &
+        (df["Price"] <= max_price)
+    ].sort_values(by="Price").reset_index(drop=True)
+
+
+    # === Editable table ===
+
+    edited_df = st.data_editor(filtered_df, use_container_width=True, num_rows="dynamic")
+
+
+    # === Save edited data ===
+
+    if st.button("Save changes"):
+        mask = (
+            (df["Website"] == selected_site) &
+            (df["Price"] >= min_price) &
+            (df["Price"] <= max_price)
+        )
+        df.loc[mask] = edited_df.values
+        st.session_state.df = df
+        df.to_csv("products.csv", index=False)
+        st.success("Changes saved successfully.")
+
+
+    # === Download filtered version ===
+
+    csv_filtered = edited_df.to_csv(index=False).encode("utf-8")
+    st.download_button("Download filtered CSV", csv_filtered, "filtered_products.csv", "text/csv")
+
+
+    # === Navigation ===
+
+    if st.button("Back"):
+        st.session_state.page = 'scraper'
 
 
 
