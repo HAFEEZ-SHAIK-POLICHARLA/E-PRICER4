@@ -8,16 +8,59 @@ import streamlit as st
 
 
 
+# ==== STYLING ====
+
+st.markdown("""
+    <style>
+        /* Buttons */
+        .stButton > button, .stDownloadButton > button {
+            display: block;
+            margin: 1rem auto;
+            background-color: #f0c420;
+            color: black;
+            font-weight: bold;
+            border: none;
+            padding: 12px 26px;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        /* Centralize Buttons */
+        div.stButton {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Subtitle */
+        h2, h3 {
+            text-align: center;
+            color: #f0c420;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+
+
+# ==== TITLE ====
+
+st.markdown(
+    """
+    <h1 style='text-align: center; color: #f0c420;'>Online Price Scraper</h1>
+    <hr style="border:1px solid #CCC"/>
+    """,
+    unsafe_allow_html=True
+)
+
+
 
 # ==== HEADER AND START PAGE ====
 
-st.title("Online Price Scraper")
 if 'page' not in st.session_state:
     st.session_state.page = 'start'
 
 if st.session_state.page == 'start':
     if st.button('start'):
-        st.session_state.page == 'scraper'
+        st.session_state.page = 'scraper'
 
 
 
@@ -25,7 +68,7 @@ if st.session_state.page == 'start':
 # ==== SCRAPER PAGE ====
 
 if st.session_state.page == 'scraper':
-    
+    st.warning('Google Chrome is necessary to load the scraper. Make sure you have it installed')
 
 
     # ==== PRODUCT NAME INPUT ====
@@ -62,32 +105,39 @@ if st.session_state.page == 'scraper':
 
     if st.button("Scrap"):
 
-        if not all([
-            st.session_state.get("product", "").strip(),
-            st.session_state.get("min_price"),
-            st.session_state.get("max_price"),
-            st.session_state.get("k_list")
-        ]):
-            st.error("Please fill all the boxes to continue")
+        product = st.session_state.get("product", "").strip()
+        min_price = st.session_state.get("min_price", None)
+        max_price = st.session_state.get("max_price", None)
+        k_list = st.session_state.get("k_list", None)
+
+        if not product:
+            st.error("Please enter a product name.")
+
+        elif min_price is None or max_price is None:
+            st.error("Please enter both minimum and maximum price.")
+
+        elif k_list is None:
+            st.error("Please provide a keyword list or choose 'No'.")
 
         else:
 
-            st.success("The scraper will sucessfully start. Please wait and make sure you have google chrome installed.")
+            st.success("The scraper will sucessfully start.")
 
 
             # ==== MERGING DATA ====
 
             data = []
-
-            for scraper in [otto_scraper, amazon_scraper, ebay_scraper]:
-                result = scraper(
-                    st.session_state.product,
-                    st.session_state.min_price,
-                    st.session_state.max_price,
-                    st.session_state.k_list
-                )
-                if result:
-                    data.extend(result)
+            
+            with st.spinner("Scraping in progress... please wait and make sure to have a stable internet connection."):
+                for scraper in [otto_scraper, amazon_scraper, ebay_scraper]:
+                    result = scraper(
+                        st.session_state.product,
+                        st.session_state.min_price,
+                        st.session_state.max_price,
+                        st.session_state.k_list
+                    )
+                    if result:
+                        data.extend(result)
 
             if not data:
                 st.error("No result found with the selected filters.")
@@ -95,14 +145,21 @@ if st.session_state.page == 'scraper':
                 df = pd.DataFrame(data)
                 df.to_csv("products.csv", index=False)
                 st.success("Products found and sucessfully saved.")
+
                 st.download_button(
-                    label= 'Download csv',
-                    data = df,
-                    file_name= 'products.csv',
-                    mime = 'text/csv'
-                    )
-                if st.button('Next'):
-                    st.session_state.page = 'edit_data'
+                label='Download csv',
+                data=df.to_csv(index=False).encode('utf-8'),
+                file_name='products.csv',
+                mime='text/csv'
+                )
+                st.session_state.scraping_finished = True  
+
+
+    if st.session_state.get("scraping_finished", False):
+        if st.button('Next'):
+            st.session_state.page = 'edit_data'
+            st.rerun()
+                
     
             
 
@@ -110,17 +167,16 @@ if st.session_state.page == 'scraper':
 # ==== DATA EDITOR PAGE ====
 
 if st.session_state.page == 'edit_data':
+    st.markdown("<h2>Edit and Filter Scraped Data</h2>", unsafe_allow_html=True)
 
-    st.title("Edit and Filter Scraped Data")
 
-
-    # === Load data ===
+    # === LOAD DATA ===
 
     st.session_state.df = pd.read_csv("products.csv")
     df = st.session_state.df
 
 
-    # === Filters ===
+    # === FILTERS ===
 
     selected_site = st.selectbox("Filter by website:", options=sorted(df["Website"].unique()))
     min_price = st.number_input("Minimum price:", value=float(df["Price"].min()))
@@ -133,12 +189,12 @@ if st.session_state.page == 'edit_data':
     ].sort_values(by="Price").reset_index(drop=True)
 
 
-    # === Editable table ===
+    # === TABLE ===
 
     edited_df = st.data_editor(filtered_df, use_container_width=True, num_rows="dynamic")
 
 
-    # === Save edited data ===
+    # === SAVE EDITED DATA ===
 
     if st.button("Save changes"):
         mask = (
@@ -152,13 +208,14 @@ if st.session_state.page == 'edit_data':
         st.success("Changes saved successfully.")
 
 
-    # === Download filtered version ===
+    # === DOWNLOAD EDITED VERSION ===
 
     csv_filtered = edited_df.to_csv(index=False).encode("utf-8")
     st.download_button("Download filtered CSV", csv_filtered, "filtered_products.csv", "text/csv")
 
 
-    # === Navigation ===
+    # === NAVIGATION ===
 
     if st.button("Back"):
         st.session_state.page = 'scraper'
+        st.rerun()

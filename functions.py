@@ -1,9 +1,27 @@
 
 # ==== PRICE CLEANER FUNCTION ====
 
-def p_cleaner(price_str):
-    clean_price = price_str.replace("€","").replace("$","").replace(".","").replace(",",".").replace("EUR","").replace("R$","").strip()
-    return float(clean_price)
+import re
+
+def p_cleaner(price_string):
+    match = re.search(r"[\d.,]+", price_string)
+    if not match:
+        return 0.0
+
+    raw = match.group()
+
+    parts = raw.split('.')
+    if len(parts) > 2:
+        raw = ''.join(parts[:-1]) + '.' + parts[-1]
+
+    clean_price = raw.replace(',', '.')
+
+    try:
+        return float(clean_price)
+    except:
+        return 0.0
+
+
 
 
 
@@ -28,7 +46,7 @@ def p_filter(p_price,p_min_price,p_max_price):
 
 
 
-# ==== KEYWORDS FILTERING FUNCTION
+# ==== KEYWORDS FILTERING FUNCTION ====
 
 def k_filter(keywords,p_name):
     if keywords == 'empty':
@@ -38,3 +56,22 @@ def k_filter(keywords,p_name):
             if w in p_name.lower():
                 return True
         return False
+
+
+
+# === HEADLESS DRIVER FUNCTION ==== 
+
+
+from selenium.webdriver.chrome.options import Options
+from selenium import webdriver
+
+def get_headless_driver():
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1920x1080")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+
+    driver = webdriver.Chrome(options=options)
+    return driver

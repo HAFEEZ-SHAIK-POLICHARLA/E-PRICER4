@@ -1,27 +1,29 @@
-# Product Price Scraper
+# Online Price Scraper
 
-This project is a Python-based scraper that gathers product data from three major e-commerce websites: **Otto**, **Amazon**, and **eBay**.  
-The user can define filters (such as price range and keywords), and the program returns a CSV file with relevant product names, prices, and URLs.
-This program uses Selenium with Chrome. Please make sure Google Chrome is installed on your system.
+Online Price Scraper is a web application that allows users to search, filter, edit, and download product data from Amazon, eBay, and Otto.de.
 
-## How it works
+## Features
 
-1. Run the Python script `main.py` in your local environment.
-2. You will be asked:
-   - What product you're looking for
-   - Whether you want to set a price filter (minimum and maximum)
-   - Whether you want to filter results by keywords
-3. The program then searches Otto, Amazon, and eBay for matching products and saves the results to a CSV file named products.csv.
-4. Once complete, open the .ipnyb file
+- Product search by name
+- Price range filtering
+- Optional keyword filtering
+- Download complete or filtered results as CSV
+- Edit product data directly in the interface
+- UI
 
-## Exploring your data
+## How to Use
 
-In this notebook, you can:
+1. Access the app through the provided Streamlit link.
+2. Enter the name of the product you're looking for.
+3. Set a minimum and maximum price range.
+4. Optionally, provide keywords to narrow down your search.
+5. Click the **Scrap** button to start the scraping process.
+6. Wait for results to load and download the full list if needed.
+7. Click **Next** to edit or filter the results.
+8. Download the updated list if needed.
 
-- Upload the CSV file you just created
-- Filter products by keyword or by price
-- Sort results from cheapest to most expensive and vice versa
-- Filter results by website (Otto, Amazon, or eBay)
-- Export modified versions of the CSV
+## Notes
 
-If you prefer, you can also just open the CSV file with Excel or another spreadsheet software.
+- This tool uses real-time scraping and may be affected by changes on the websites.
+- Results depend on live data available on Amazon, eBay, and Otto.de.
+- Chrome must be installed on the server running the scraping.
