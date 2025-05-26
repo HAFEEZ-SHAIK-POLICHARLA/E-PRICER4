@@ -18,7 +18,7 @@ def amazon_scraper(product,min_price,max_price,keywords):
 
 
     driver = get_headless_driver()
-    wait = WebDriverWait(driver, 25)
+    wait = WebDriverWait(driver, 35)
     driver.get('https://www.amazon.de')
 
 
